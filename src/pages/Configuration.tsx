@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import { departmentService } from '../services/departmentService';
+import { majorService } from '../services/majorService';
 import { Department } from '../types';
 
 interface DepartmentFormData {
@@ -8,14 +9,26 @@ interface DepartmentFormData {
   short_name: string;
 }
 
+interface MajorFormData {
+  name: string;
+  short_name: string;
+  department_id: string;
+}
+
 export default function Configuration() {
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [showModal, setShowModal] = useState(false);
+  const [showDeptModal, setShowDeptModal] = useState(false);
+  const [showMajorModal, setShowMajorModal] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState<DepartmentFormData>({
+  const [deptFormData, setDeptFormData] = useState<DepartmentFormData>({
     name: '',
     short_name: ''
+  });
+  const [majorFormData, setMajorFormData] = useState<MajorFormData>({
+    name: '',
+    short_name: '',
+    department_id: ''
   });
 
   useEffect(() => {
@@ -33,30 +46,58 @@ export default function Configuration() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleDeptSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (editingDept) {
-        await departmentService.update(editingDept.id, formData);
+        await departmentService.update(editingDept.id, deptFormData);
       } else {
-        await departmentService.create(formData);
+        await departmentService.create(deptFormData);
       }
 
       await loadData();
-      handleCloseModal();
-    } catch (error) {
+      handleCloseDeptModal();
+    } catch (error: any) {
       console.error('Failed to save department:', error);
-      alert('Failed to save department');
+      const errorMessage = error?.message || error?.error?.message || 'Failed to save department';
+      alert(errorMessage);
+    }
+  };
+
+  const handleMajorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!majorFormData.department_id) {
+      alert('Please select a department');
+      return;
+    }
+    try {
+      await majorService.create({
+        name: majorFormData.name,
+        short_name: majorFormData.short_name,
+        department_id: parseInt(majorFormData.department_id)
+      });
+
+      await loadData();
+      setMajorFormData({
+        name: '',
+        short_name: '',
+        department_id: ''
+      });
+      setShowMajorModal(false);
+    } catch (error: any) {
+      console.error('Failed to save major:', error);
+      const errorMessage = error?.message || error?.error?.message || 'Failed to save major';
+      alert(errorMessage);
     }
   };
 
   const handleEdit = (dept: Department) => {
     setEditingDept(dept);
-    setFormData({
+    setDeptFormData({
       name: dept.name,
       short_name: dept.short_name
     });
-    setShowModal(true);
+    setShowDeptModal(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -71,10 +112,10 @@ export default function Configuration() {
     }
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
+  const handleCloseDeptModal = () => {
+    setShowDeptModal(false);
     setEditingDept(null);
-    setFormData({
+    setDeptFormData({
       name: '',
       short_name: ''
     });
@@ -91,13 +132,22 @@ export default function Configuration() {
           <h2 className="text-2xl font-bold text-gray-800">Departments</h2>
           <p className="text-gray-600 mt-1">Manage university departments</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg transition-colors"
-        >
-          <Plus size={20} />
-          Add Department
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowDeptModal(true)}
+            className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg transition-colors"
+          >
+            <Plus size={20} />
+            Add Department
+          </button>
+          <button
+            onClick={() => setShowMajorModal(true)}
+            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors"
+          >
+            <Plus size={20} />
+            Add Major
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -164,7 +214,7 @@ export default function Configuration() {
         </div>
       </div>
 
-      {showModal && (
+      {showDeptModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl max-w-lg w-full">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -172,20 +222,20 @@ export default function Configuration() {
                 {editingDept ? 'Edit Department' : 'Add New Department'}
               </h3>
               <button
-                onClick={handleCloseModal}
+                onClick={handleCloseDeptModal}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleDeptSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Department Name</label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={deptFormData.name}
+                  onChange={(e) => setDeptFormData({ ...deptFormData, name: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                   placeholder="e.g., Information Technology & Engineering"
                   required
@@ -196,8 +246,8 @@ export default function Configuration() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Short Name</label>
                 <input
                   type="text"
-                  value={formData.short_name}
-                  onChange={(e) => setFormData({ ...formData, short_name: e.target.value })}
+                  value={deptFormData.short_name}
+                  onChange={(e) => setDeptFormData({ ...deptFormData, short_name: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                   placeholder="e.g., ITE"
                   required
@@ -207,7 +257,7 @@ export default function Configuration() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={handleCloseModal}
+                  onClick={handleCloseDeptModal}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Cancel
@@ -217,6 +267,81 @@ export default function Configuration() {
                   className="flex-1 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
                 >
                   {editingDept ? 'Update Department' : 'Create Department'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showMajorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-800">Add New Major</h3>
+              <button
+                onClick={() => setShowMajorModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleMajorSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                <select
+                  value={majorFormData.department_id}
+                  onChange={(e) => setMajorFormData({ ...majorFormData, department_id: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select Department</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Major Name</label>
+                <input
+                  type="text"
+                  value={majorFormData.name}
+                  onChange={(e) => setMajorFormData({ ...majorFormData, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Computer Science"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Short Name</label>
+                <input
+                  type="text"
+                  value={majorFormData.short_name}
+                  onChange={(e) => setMajorFormData({ ...majorFormData, short_name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., CS"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowMajorModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                >
+                  Create Major
                 </button>
               </div>
             </form>

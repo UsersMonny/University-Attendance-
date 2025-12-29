@@ -11,6 +11,9 @@ import EmployeeDashboard from './pages/EmployeeDashboard';
 import UserManagement from './pages/UserManagement';
 import AcademicSetup from './pages/AcademicSetup';
 import Configuration from './pages/Configuration';
+import Major from './pages/Major';
+import SubjectPage from './pages/Subject';
+import Schedule from './pages/Schedule';
 import LeaveRequestManagement from './pages/LeaveRequestManagement';
 import AttendanceView from './pages/AttendanceView';
 import LeaveRequest from './pages/LeaveRequest';
@@ -19,8 +22,11 @@ import CheckAttendance from './pages/CheckAttendance';
 type PageType =
   | 'dashboard'
   | 'users'
-  | 'academic-setup'
-  | 'configuration'
+  | 'academic/class'
+  | 'academic/schedule'
+  | 'configuration/department'
+  | 'configuration/major'
+  | 'configuration/subject'
   | 'leave-requests'
   | 'attendance'
   | 'check-attendance';
@@ -57,8 +63,11 @@ function App() {
     const titles: Record<PageType, string> = {
       dashboard: 'Dashboard',
       users: 'User Management',
-      'academic-setup': 'Academic Setup',
-      configuration: 'Configuration',
+      'academic/class': 'Class Management',
+      'academic/schedule': 'Schedule Management',
+      'configuration/department': 'Department Management',
+      'configuration/major': 'Major Management',
+      'configuration/subject': 'Subject Management',
       'leave-requests': 'Leave Requests',
       attendance: 'Attendance',
       'check-attendance': 'Check Attendance'
@@ -105,15 +114,33 @@ function App() {
         }
         break;
 
-      case 'academic-setup':
+      case 'academic/class':
         if (currentUser.role === 'admin') {
           return <AcademicSetup />;
         }
         break;
 
-      case 'configuration':
+      case 'academic/schedule':
+        if (currentUser.role === 'admin') {
+          return <Schedule />;
+        }
+        break;
+
+      case 'configuration/department':
         if (currentUser.role === 'admin') {
           return <Configuration />;
+        }
+        break;
+
+      case 'configuration/major':
+        if (currentUser.role === 'admin') {
+          return <Major />;
+        }
+        break;
+
+      case 'configuration/subject':
+        if (currentUser.role === 'admin') {
+          return <SubjectPage />;
         }
         break;
 

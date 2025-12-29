@@ -52,9 +52,10 @@ export default function CheckAttendance({ currentUser }: CheckAttendanceProps) {
         ...prev,
         [userId]: status
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to mark attendance:', error);
-      alert('Failed to mark attendance');
+      const errorMessage = error?.message || error?.error?.message || 'Failed to mark attendance';
+      alert(errorMessage);
     }
   };
 

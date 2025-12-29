@@ -53,11 +53,16 @@ export default function UserManagement() {
     e.preventDefault();
     try {
       const userData = {
-        ...formData,
+        unique_id: formData.unique_id,
+        name: formData.name,
+        email: formData.email || null,
+        password: formData.password,
+        role: formData.role,
         department_id: formData.department_id ? parseInt(formData.department_id) : null,
         class_id: null,
         work_type: null,
-        schedule: null
+        schedule: null,
+        status: formData.status
       };
 
       if (editingUser) {
@@ -68,9 +73,10 @@ export default function UserManagement() {
 
       await loadData();
       handleCloseModal();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save user:', error);
-      alert('Failed to save user');
+      const errorMessage = error?.message || error?.error?.message || 'Failed to save user';
+      alert(errorMessage);
     }
   };
 

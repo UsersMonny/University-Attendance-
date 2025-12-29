@@ -35,6 +35,15 @@ export default function LeaveRequest({ currentUser }: LeaveRequestProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (!formData.from_date || !formData.to_date || !formData.reason) {
+        alert('Please fill in all fields');
+        return;
+      }
+      if (new Date(formData.to_date) < new Date(formData.from_date)) {
+        alert('To date must be after from date');
+        return;
+      }
+
       await leaveService.create({
         user_id: currentUser.id,
         from_date: formData.from_date,
@@ -45,9 +54,11 @@ export default function LeaveRequest({ currentUser }: LeaveRequestProps) {
 
       await loadData();
       handleCloseModal();
-    } catch (error) {
+      alert('Leave request submitted successfully');
+    } catch (error: any) {
       console.error('Failed to submit leave request:', error);
-      alert('Failed to submit leave request');
+      const errorMessage = error?.message || error?.error?.message || 'Failed to submit leave request';
+      alert(errorMessage);
     }
   };
 

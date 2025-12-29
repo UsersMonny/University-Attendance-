@@ -52,9 +52,11 @@ export default function LeaveRequestManagement({ currentUser }: LeaveRequestMana
       await loadData();
       setSelectedRequest(null);
       setComments('');
-    } catch (error) {
+      alert('Leave request approved successfully');
+    } catch (error: any) {
       console.error('Failed to approve request:', error);
-      alert('Failed to approve request');
+      const errorMessage = error?.message || error?.error?.message || 'Failed to approve request';
+      alert(errorMessage);
     }
   };
 
@@ -71,9 +73,11 @@ export default function LeaveRequestManagement({ currentUser }: LeaveRequestMana
       await loadData();
       setSelectedRequest(null);
       setComments('');
-    } catch (error) {
+      alert('Leave request rejected successfully');
+    } catch (error: any) {
       console.error('Failed to reject request:', error);
-      alert('Failed to reject request');
+      const errorMessage = error?.message || error?.error?.message || 'Failed to reject request';
+      alert(errorMessage);
     }
   };
 

@@ -51,12 +51,19 @@ export default function AcademicSetup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.major_id) {
+      alert('Please select a major');
+      return;
+    }
     try {
       const classData = {
-        ...formData,
+        name: formData.name,
         major_id: parseInt(formData.major_id),
         year: parseInt(formData.year),
-        semester: parseInt(formData.semester)
+        semester: parseInt(formData.semester),
+        academic_year: formData.academic_year,
+        group: formData.group,
+        is_active: formData.is_active
       };
 
       if (editingClass) {
@@ -67,9 +74,10 @@ export default function AcademicSetup() {
 
       await loadData();
       handleCloseModal();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save class:', error);
-      alert('Failed to save class');
+      const errorMessage = error?.message || error?.error?.message || 'Failed to save class';
+      alert(errorMessage);
     }
   };
 
